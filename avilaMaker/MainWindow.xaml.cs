@@ -28,26 +28,36 @@ namespace avilaMaker
         string imageCopyLocation = Directory.GetCurrentDirectory() + "\\toPrint\\";
 
         float layerSize = 0.000f;
-        const int imageSizeX = 2498;
-        const int imageSizeY = 675;
-        const float imageSizeZ = 2.500f;//in inches
-        const float sphereSizeZ = .3f; //radius in images
+        const int imageSizeX = 2832;
+        const int baseImageSizeY = 708;
+        const int gapSize = 600;
+        const int imageSizeY = (baseImageSizeY * 3) + (gapSize * 2);
+        const float imageSizeZ = 1.18f;//in inches
+        const float sphereSizeZ = .29f; //radius in imnches
 
 
         float numImages = 0; //float becuase lost inches want to have every single layer and an acuracy of at most +-layerSize
 
-        const int sphereOneOffset = 499;
-        const int sphereTwoOffset = 1249;
-        const int sphereThreeOffset = 1999;
+        const int sphereOneOffset = 588;
+        const int sphereTwoOffset = 1416;
+        const int sphereThreeOffset = 2244;
 
-        const int sphereOneColor = 93;
-        const int sphereTwoColor = 58;
-        const int sphereThreeColor = 208;
+        const int sphereOneColorGlobal = 93;
+        const int sphereTwoColorGlobal = 58;
+        const int sphereThreeColorGlobal = 208;
 
-        const int backgroundColor = 255;
+        const byte colorOffsetLower1 = 15;
+        const byte colorOffsetLower2 = 15;
+        const byte colorOffsetLower3 = 10;
+
+        const byte colorOffsetUpper1 = 10;
+        const byte colorOffsetUpper2 = 10;
+        const byte colorOffsetUpper3 = 20;
+
+        const int backgroundColor = 41;
         const int maxColor = 255;
 
-        const int sphereSizeGlobal = 180;
+        const int sphereSizeGlobal = 177; //radius Diameter is 354
 
         const int bluePixel = 0;
         const int greenPixel = 1;
@@ -57,6 +67,34 @@ namespace avilaMaker
         {
             InitializeComponent();
 
+        }
+
+        public int getRadius(int i, byte[] cicle)
+        {
+            int chord = i;
+            int imageSizeY = (int) numImages;
+
+            int radiusStart = 0;
+            int radiusEnd = 0;
+            //for (int testY = 0; testY < imageSizeY; testY++)
+            //{
+            int testY = i;
+                for (int testX = testY * imageSizeY; testX < (testY * imageSizeY) + imageSizeY; testX++)
+                {
+                    if (cicle[testX] == (byte)sphereOneColorGlobal)
+                    {
+                        if (radiusStart == 0)
+                        {
+                            radiusStart = testX;
+                        }
+                        else
+                        {
+                            radiusEnd = testX;
+                        }
+                    }
+                }
+                return (int) ((radiusEnd - radiusStart) * 1.25);
+            //}
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -74,7 +112,7 @@ namespace avilaMaker
             const float sphereSizeZ = .3f; //radius in images
 
             int centerImage = (int)numImages / 2;
-            int sphereOffsetY = imageSizeY / 2;
+            int sphereOffsetY = baseImageSizeY / 2;
             int columnLocation = pixelLocation % imageSizeX;
             int rowLocation = (int)(pixelLocation / imageSizeX);
 
@@ -96,7 +134,6 @@ namespace avilaMaker
 
                 BmpBitmapDecoder baseImage = new BmpBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                 BitmapSource baseImageSource = baseImage.Frames[0];
-
 
 
                 //List<System.Windows.Media.Color> colors = new List<System.Windows.Media.Color>();
@@ -143,12 +180,64 @@ namespace avilaMaker
                     numImages = imageSizeZ / layerSize;
 
                     int centerImage = (int)numImages / 2;
-                    int sphereOffsetY = imageSizeY / 2;
-                    
-                    
+                    int sphereOffsetY = baseImageSizeY / 2;
 
-                    
 
+                    int x, y, r2;
+
+
+                    int pixelsX = (int)numImages;
+
+                    byte[] circlePixels = new byte[pixelsX * pixelsX];
+
+                    int offset = (int)(numImages) / 2;
+                    int radius = (int)(sphereSizeZ / layerSize);
+                    //int offsetY = radius;
+
+                    byte sphereOneColor = sphereOneColorGlobal;
+
+                    r2 = (int)radius * (int)radius;
+
+                    circlePixels[(int)(offset + (offset + radius) * pixelsX)] = sphereOneColor;
+                    circlePixels[(int)(offset + (offset - radius) * pixelsX)] = sphereOneColor;
+                    circlePixels[(int)(offset + radius + (offset) * pixelsX)] = sphereOneColor;
+                    circlePixels[(int)(offset - radius + (offset) * pixelsX)] = sphereOneColor;
+
+                    y = radius;
+                    x = 1;
+                    y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                    while (x < y)
+                    {
+                        circlePixels[(int)(offset + x + (offset + y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset + x + (offset - y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - x + (offset + y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - x + (offset - y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset + y + (offset + x) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset + y + (offset - x) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - y + (offset + x) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - y + (offset - x) * pixelsX)] = sphereOneColor;
+                        x += 1;
+                        y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                    }
+                    if (x == y)
+                    {
+                        circlePixels[(int)(offset + x + (offset + y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset + x + (offset - y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - x + (offset + y) * pixelsX)] = sphereOneColor;
+                        circlePixels[(int)(offset - x + (offset - y) * pixelsX)] = sphereOneColor;
+                    }
+
+
+                    WriteableBitmap view3D = new WriteableBitmap((int)pixelsX, (int)pixelsX, (double)600, (double)600, PixelFormats.Gray8, palette);
+                    view3D.WritePixels(new Int32Rect(0, 0, pixelsX, pixelsX), circlePixels, pixelsX, 0);
+
+                    BitmapEncoder view3DEnc = new BmpBitmapEncoder();
+                    view3DEnc.Frames.Add(BitmapFrame.Create(view3D));
+
+                    using (FileStream fs = new FileStream(photoSaveLocation + "view3D.bmp", FileMode.Create, FileAccess.Write))
+                    {
+                        view3DEnc.Save(fs);
+                    }
 
                     for (int i = 0; i < numImages; i++)
                     {
@@ -157,7 +246,25 @@ namespace avilaMaker
                             int columnLocation = locationIndex % imageSizeX;
                             int rowLocation = (int)(locationIndex / imageSizeX);
 
-                            pixels[colorIndex] = backgroundColor;
+                            if (locationIndex >= (baseImageSizeY) * imageSizeX && locationIndex <= (baseImageSizeY + gapSize) * imageSizeX || locationIndex >= (baseImageSizeY * 2 + gapSize) * imageSizeX && locationIndex <= (baseImageSizeY * 2 + gapSize + gapSize) * imageSizeX)
+                            {
+                                pixels[colorIndex] = 0;
+                            }
+                            else
+                            {
+                                if (locationIndex < baseImageSizeY * imageSizeX)
+                                {
+                                    pixels[colorIndex] = backgroundColor;
+                                }
+                                else if (locationIndex < (baseImageSizeY * 2 + gapSize) * imageSizeX )
+                                {
+                                    pixels[colorIndex] = backgroundColor - colorOffsetLower1;
+                                }
+                                else if (locationIndex < (baseImageSizeY * 3 + gapSize + gapSize) * imageSizeX)
+                                {
+                                    pixels[colorIndex] = backgroundColor + colorOffsetUpper1;
+                                }
+                            }
                             pixelsW[colorIndex] = maxColor;
                         }
 
@@ -202,17 +309,19 @@ namespace avilaMaker
                             //pixels[colorIndex] = backgroundColor;
                             //pixelsW[colorIndex] = maxColor;
 
-                            int sphereSize = (int)((sphereSizeGlobal - Math.Abs((centerImage - currentImage)) * Math.PI));
+                            int sphereSize = 0;
 
                             int sphereOffset = sphereOneOffset;
+
+                            //if (sphereSize > 0)
                             if (currentImage > centerImage - (sphereSizeZ / layerSize) && currentImage < centerImage + (sphereSizeZ / layerSize) && columnLocation == sphereOffset && rowLocation == sphereOffsetY)
                             {
-                                
-
-                                int x, y, r2;
-
+                                sphereSize = (getRadius(currentImage, circlePixels));
                                 
                                 r2 = sphereSize * sphereSize;
+                                sphereOneColor = sphereOneColorGlobal;
+                                byte sphereTwoColor = sphereTwoColorGlobal;
+                                byte sphereThreeColor = sphereThreeColorGlobal;
 
 
                                 pixels[(int)(sphereOffset + (sphereOffsetY + sphereSize) * imageSizeX)] = sphereOneColor;
@@ -248,6 +357,7 @@ namespace avilaMaker
 
                                 sphereOffset = sphereTwoOffset;
                                 r2 = sphereSize * sphereSize;
+
                                 pixels[(int)(sphereOffset + (sphereOffsetY + sphereSize) * imageSizeX)] = sphereTwoColor;
                                 pixels[(int)(sphereOffset + (sphereOffsetY - sphereSize) * imageSizeX)] = sphereTwoColor;
                                 pixels[(int)(sphereOffset + sphereSize + (sphereOffsetY) * imageSizeX)] = sphereTwoColor;
@@ -281,6 +391,7 @@ namespace avilaMaker
 
                                 sphereOffset = sphereThreeOffset;
                                 r2 = sphereSize * sphereSize;
+
                                 pixels[(int)(sphereOffset + (sphereOffsetY + sphereSize) * imageSizeX)] = sphereThreeColor;
                                 pixels[(int)(sphereOffset + (sphereOffsetY - sphereSize) * imageSizeX)] = sphereThreeColor;
                                 pixels[(int)(sphereOffset + sphereSize + (sphereOffsetY) * imageSizeX)] = sphereThreeColor;
@@ -309,11 +420,224 @@ namespace avilaMaker
                                     pixels[(int)(sphereOffset - x + (sphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
                                     pixels[(int)(sphereOffset - x + (sphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
                                 }
+
+
+                                //new circle sets 2 and 3 
+
+                                int localSphereOffsetY = (baseImageSizeY / 2) + baseImageSizeY + gapSize;
+                                sphereOffset = sphereOneOffset;
+                                sphereOneColor = sphereOneColorGlobal - colorOffsetLower1;
+                                sphereTwoColor = sphereTwoColorGlobal - colorOffsetLower2;
+                                sphereThreeColor = sphereThreeColorGlobal - colorOffsetLower3;
+
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereOneColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereOneColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                }
+
+
+
+                                sphereOffset = sphereTwoOffset;
+                                r2 = sphereSize * sphereSize;
+
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereTwoColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereTwoColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                }
+
+
+
+                                sphereOffset = sphereThreeOffset;
+                                r2 = sphereSize * sphereSize;
+                                
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereThreeColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereThreeColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                }
+
+
+                                //circle set 3
+
+                                localSphereOffsetY = (baseImageSizeY / 2) + baseImageSizeY + gapSize + baseImageSizeY + gapSize;
+                                sphereOffset = sphereOneOffset;
+                                sphereOneColor = sphereOneColorGlobal + colorOffsetUpper1;
+                                sphereTwoColor = sphereTwoColorGlobal + colorOffsetUpper2;
+                                sphereThreeColor = sphereThreeColorGlobal + colorOffsetUpper3;
+
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereOneColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereOneColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereOneColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereOneColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereOneColor;
+                                }
+
+
+
+                                sphereOffset = sphereTwoOffset;
+                                r2 = sphereSize * sphereSize;
+
+
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereTwoColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereTwoColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereTwoColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereTwoColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereTwoColor;
+                                }
+
+
+
+                                sphereOffset = sphereThreeOffset;
+                                r2 = sphereSize * sphereSize;
+
+                                pixels[(int)(sphereOffset + (localSphereOffsetY + sphereSize) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset + (localSphereOffsetY - sphereSize) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset + sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereThreeColor;
+                                pixels[(int)(sphereOffset - sphereSize + (localSphereOffsetY) * imageSizeX)] = sphereThreeColor;
+
+                                y = sphereSize;
+                                x = 1;
+                                y = (int)(Math.Sqrt(r2 - 1) + 0.5);
+                                while (x < y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY + x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + y + (localSphereOffsetY - x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY + x) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - y + (localSphereOffsetY - x) * imageSizeX)] = sphereThreeColor;
+                                    x += 1;
+                                    y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
+                                }
+                                if (x == y)
+                                {
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset + x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY + y) * imageSizeX)] = sphereThreeColor;
+                                    pixels[(int)(sphereOffset - x + (localSphereOffsetY - y) * imageSizeX)] = sphereThreeColor;
+                                }
                             }
                         }
                             //if (currentImage > centerImage - (sphereSizeZ / layerSize) && currentImage < centerImage + (sphereSizeZ / layerSize))
                             //{
-                                for (int testY = 0; testY < imageSizeY; testY++)
+                        for (int testY = 0; testY < imageSizeY; testY++)
                                 {
                                     int hitColor = backgroundColor;
                                     int hitEndColor = backgroundColor;
@@ -322,7 +646,7 @@ namespace avilaMaker
                                     int sphereMiddle = 0;
                                     for (int testX = testY * imageSizeX; testX < (testY * imageSizeX) + imageSizeX; testX++)
                                     {
-                                        if (pixels[testX] != (byte)backgroundColor)
+                                        if (pixels[testX] != backgroundColor && pixels[testX] != backgroundColor - colorOffsetLower1 && pixels[testX] != backgroundColor + colorOffsetUpper1)
                                         {
                                             if (sphereStart == 0)
                                             {
@@ -335,7 +659,7 @@ namespace avilaMaker
                                                 sphereEnd = testX;
                                             }
                                         }
-                                        if (pixels[testX] == (byte)backgroundColor)
+                                        if (pixels[testX] == backgroundColor || pixels[testX] == backgroundColor - colorOffsetLower1 || pixels[testX] == backgroundColor + colorOffsetUpper1)
                                         {
                                             if (sphereStart != 0)
                                             {
@@ -410,6 +734,18 @@ namespace avilaMaker
                         //    pixelsW[j] = maxColor;
                         //}
 
+                        for (int pixelsCount = 0; pixelsCount < pixels.Length; pixelsCount++)
+                        {
+                            if (pixels[pixelsCount] != 0)
+                            {
+                                pixelsW[pixelsCount] = (byte)((byte)(255) - pixels[pixelsCount]);
+                            }
+                            else
+                            {
+                                pixelsW[pixelsCount] = 0;
+                            }
+                        }
+
                         bitmapImages.WritePixels(new Int32Rect(0, 0, imageSizeX, imageSizeY), pixels, stride, 0);
 
                         image1.Source = bitmapImages;
@@ -451,8 +787,9 @@ namespace avilaMaker
                 }
                 //end loop here
                 //--------------------------------------
-
+                imageStreamSource.Close();
                 textBlock4.Text = currentImage + " images were created successfully";
+
             }
             catch (IOException)
             {
@@ -570,7 +907,7 @@ namespace avilaMaker
                         z2cFile[2] = numImagesCopy.ToString();
 
 
-                        System.IO.File.WriteAllLines(imagesDirectory + "\\images\\forPrint\\images.z2c", z2cFile);
+                        System.IO.File.WriteAllLines(imagesDirectory + "\\images.z2c", z2cFile);
                         textBlock4.Text = "All Done Creating .z2c file";
                     }
                 }
@@ -632,17 +969,25 @@ namespace avilaMaker
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists(imageDeleteLocation))
+            try
             {
-                Directory.Delete(imageDeleteLocation, true);
+                if (Directory.Exists(imageDeleteLocation))
+                {
+                    Directory.Delete(imageDeleteLocation, true);
+                }
+                if (Directory.Exists(imageCopyLocation))
+                {
+                    Directory.Delete(imageCopyLocation, true);
+                }
+                radioButton1.IsChecked = false;
+                radioButton2.IsChecked = false;
+                radioButton3.IsChecked = false;
+                textBlock4.Text = "";
             }
-            if (Directory.Exists(imageCopyLocation))
+            catch (IOException)
             {
-                Directory.Delete(imageCopyLocation, true);
+                textBlock4.Text = "Delete failed";
             }
-            radioButton1.IsChecked = false;
-            radioButton2.IsChecked = false;
-            radioButton3.IsChecked = false;
         }
     }
 }
