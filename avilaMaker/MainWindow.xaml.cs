@@ -35,6 +35,8 @@ namespace avilaMaker
         const float imageSizeZ = 1.18f;//in inches
         const float sphereSizeZ = .29f; //radius in imnches
 
+        const int intendedRadius = 180;
+
 
         float numImages = 0; //float becuase lost inches want to have every single layer and an acuracy of at most +-layerSize
 
@@ -69,9 +71,9 @@ namespace avilaMaker
 
         }
 
-        public int getRadius(int i, byte[] cicle)
+        public int getRadius(int i, byte[] cicle, int centerImage)
         {
-            int chord = i;
+            //int chord = i;
             int imageSizeY = (int) numImages;
 
             int radiusStart = 0;
@@ -79,21 +81,41 @@ namespace avilaMaker
             //for (int testY = 0; testY < imageSizeY; testY++)
             //{
             int testY = i;
-                for (int testX = testY * imageSizeY; testX < (testY * imageSizeY) + imageSizeY; testX++)
+            for (int testX = testY * imageSizeY; testX < (testY * imageSizeY) + imageSizeY; testX++)
+            {
+                if (cicle[testX] == (byte)sphereOneColorGlobal)
                 {
-                    if (cicle[testX] == (byte)sphereOneColorGlobal)
+                    if (radiusStart == 0)
                     {
-                        if (radiusStart == 0)
-                        {
-                            radiusStart = testX;
-                        }
-                        else
-                        {
-                            radiusEnd = testX;
-                        }
+                        radiusStart = testX;
+                    }
+                    else
+                    {
+                        radiusEnd = testX;
                     }
                 }
-                return (int) ((radiusEnd - radiusStart) * 1.25);
+            }
+
+            int radiusStartOff = 0;
+            int radiusEndOff = 0;
+            testY = centerImage;
+            for (int testX = testY * imageSizeY; testX < (testY * imageSizeY) + imageSizeY; testX++)
+            {
+                if (cicle[testX] == (byte)sphereOneColorGlobal)
+                {
+                        
+                    if (radiusStartOff == 0)
+                    {
+                        radiusStartOff = testX;
+                    }
+                    else
+                    {
+                        radiusEndOff = testX;
+                    }
+                }
+            }
+            int radiusOffset = (radiusEndOff - radiusStartOff);
+            return (int)((radiusEnd - radiusStart) * (intendedRadius / radiusOffset));
             //}
         }
 
@@ -316,7 +338,12 @@ namespace avilaMaker
                             //if (sphereSize > 0)
                             if (currentImage > centerImage - (sphereSizeZ / layerSize) && currentImage < centerImage + (sphereSizeZ / layerSize) && columnLocation == sphereOffset && rowLocation == sphereOffsetY)
                             {
-                                sphereSize = (getRadius(currentImage, circlePixels));
+                                sphereSize = (getRadius(currentImage, circlePixels, centerImage));
+
+                                if (currentImage == centerImage)
+                                {
+                                    int test = 0;
+                                }
                                 
                                 r2 = sphereSize * sphereSize;
                                 sphereOneColor = sphereOneColorGlobal;
